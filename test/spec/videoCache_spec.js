@@ -162,7 +162,7 @@ describe('The video cache', function () {
       request.method.should.equal('POST');
       request.url.should.equal('https://prebid.adnxs.com/pbc/v1/cache');
       request.requestHeaders['Content-Type'].should.equal('text/plain');
-      let payload = {
+      const payload = {
         puts: [{
           type: 'xml',
           value: vastXml1,
@@ -212,7 +212,7 @@ describe('The video cache', function () {
       request.method.should.equal('POST');
       request.url.should.equal('https://prebid.adnxs.com/pbc/v1/cache');
       request.requestHeaders['Content-Type'].should.equal('text/plain');
-      let payload = {
+      const payload = {
         puts: [{
           type: 'xml',
           value: vastXml1,
@@ -283,7 +283,7 @@ describe('The video cache', function () {
       request.method.should.equal('POST');
       request.url.should.equal('https://prebid.adnxs.com/pbc/v1/cache');
       request.requestHeaders['Content-Type'].should.equal('text/plain');
-      let payload = {
+      const payload = {
         puts: [{
           type: 'xml',
           value: vastXml1,
@@ -312,7 +312,7 @@ describe('The video cache', function () {
       it('should wait the duration of the batchTimeout and pass the correct batchSize if batched requests are enabled in the config', () => {
         const mockAfterBidAdded = function() {};
         let callback = null;
-        let mockTimeout = sinon.stub().callsFake((cb) => { callback = cb });
+        const mockTimeout = sinon.stub().callsFake((cb) => { callback = cb });
 
         config.setConfig({
           cache: {
@@ -322,7 +322,7 @@ describe('The video cache', function () {
           }
         });
 
-        let stubCache = sinon.stub();
+        const stubCache = sinon.stub();
         const batchAndStore = batchingCache(mockTimeout, stubCache);
         for (let i = 0; i < 3; i++) {
           batchAndStore({}, {}, mockAfterBidAdded);
@@ -381,6 +381,7 @@ describe('The video cache', function () {
     });
     afterEach(() => {
       sandbox.restore();
+      config.resetConfig();
     })
     it('should log an error when store replies with an error', () => {
       err = new Error('err');
@@ -395,7 +396,21 @@ describe('The video cache', function () {
       expect(el.bidResponse.videoCacheKey).to.not.exist;
       sinon.assert.notCalled(batch[0].afterBidAdded);
       sinon.assert.called(utils.logError);
-    })
+    });
+    it('should set bids\' videoCacheKey and vastUrl', () => {
+      config.setConfig({
+        cache: {
+          url: 'mock-cache'
+        }
+      })
+      const el = {auctionInstance: {addBidReceived: sinon.stub()}, bidResponse: {}, afterBidAdded: sinon.stub()};
+      cacheIds = [{uuid: 'mock-id'}]
+      storeBatch([el]);
+      sinon.assert.match(el.bidResponse, {
+        videoCacheKey: 'mock-id',
+        vastUrl: 'mock-cache?uuid=mock-id'
+      })
+    });
   })
 
   describe('local video cache', function() {
