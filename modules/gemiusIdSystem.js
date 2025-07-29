@@ -5,8 +5,8 @@ const MODULE_NAME = 'gemiusId';
 const GVLID = 328;
 const LOG_PREFIX = 'Gemius User ID: ';
 
-const RETRIEVE_ID_MAX_TRIES = 4;
-const RETRIEVE_ID_INTERVALS = 1000;
+const WAIT_FOR_PRIMARY_SCRIPT_MAX_TRIES = 7;
+const WAIT_FOR_PRIMARY_SCRIPT_INITIAL_WAIT_MS = 150;
 const GEMIUS_CMD_TIMEOUT = 8000;
 
 function getPrimaryScriptWindow() {
@@ -72,13 +72,13 @@ export const gemiusIdSubmodule = {
       callback: function (callback) {
         const win = getPrimaryScriptWindow();
 
-        (function waitForPrimaryScript(tryCount = 1) {
+        (function waitForPrimaryScript(tryCount = 1, nextWaitTime = WAIT_FOR_PRIMARY_SCRIPT_INITIAL_WAIT_MS) {
           if (typeof win.gemius_cmd !== 'undefined') {
             retrieveId(win, callback);
           }
 
-          if (tryCount < RETRIEVE_ID_MAX_TRIES) {
-            setTimeout(() => waitForPrimaryScript(tryCount + 1), RETRIEVE_ID_INTERVALS);
+          if (tryCount < WAIT_FOR_PRIMARY_SCRIPT_MAX_TRIES) {
+            setTimeout(() => waitForPrimaryScript(tryCount + 1, nextWaitTime * 2), nextWaitTime);
           } else {
             callback();
           }

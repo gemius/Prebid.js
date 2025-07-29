@@ -18,12 +18,14 @@ You can configure this submodule in your `userSync.userIds[]` configuration:
 pbjs.setConfig({
     userSync: {
         userIds: [{
-            name: 'gemiusId'
+            name: 'gemiusId',
+            storage: {
+                name: 'pbjs_gemiusId',
+                type: 'cookie',
+                expires: 7,
+                refreshInSeconds: 3600
+            }
         }]
     }
 });
 ```
-
-| Param under userSync.userIds[] | Scope | Type | Description | Example |
-| --- | --- | --- | --- | --- |
-| name | Required | String | The name of this module. | `"gemiusId"` |
