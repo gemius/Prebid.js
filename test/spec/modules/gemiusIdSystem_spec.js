@@ -39,6 +39,20 @@ describe('GemiusId module', function () {
   });
 
   describe('getId', function () {
+    const gdprConsentData = {
+      gdprApplies: true,
+      apiVersion: 2,
+      vendorData: {
+        purpose: {
+          consents: {
+            1: true,
+            2: false,
+            3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true, 11: true
+          }
+        }
+      }
+    };
+
     it('should return undefined if gemius_cmd is not available', function (done) {
       clock = sinon.useFakeTimers();
       getWindowTopStub.returns({});
@@ -53,21 +67,17 @@ describe('GemiusId module', function () {
 
     it('should return null id if no consent', function () {
       const result = gemiusIdSubmodule.getId({}, {
-        gdpr: {
-          gdprApplies: true,
-          apiVersion: 2,
-          vendorData: {
-            purpose: {
-              consents: {
-                1: true,
-                2: false,
-                3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true, 11: true
-              }
-            }
-          }
-        }
+        gdpr: gdprConsentData
       });
       expect(result).to.deep.equal({id: {id: null}});
+    });
+
+    it('should return callback on consent', function () {
+      const result = gemiusIdSubmodule.getId({}, {
+        gdpr: utils.deepClone(gdprConsentData).vendorData.purpose.consents["2"] = true
+      });
+      expect(result).to.have.property('callback');
+      expect(result.callback).to.be.a('function');
     });
 
     it('should return callback when gemius_cmd is available', function () {
