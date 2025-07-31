@@ -22,7 +22,7 @@ pbjs.setConfig({
             storage: {
                 name: 'pbjs_gemiusId',
                 type: 'cookie',
-                expires: 7,
+                expires: 30,
                 refreshInSeconds: 3600
             }
         }]

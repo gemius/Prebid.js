@@ -4,6 +4,7 @@ import * as utils from 'src/utils.js';
 describe('GemiusId module', function () {
   let getWindowTopStub;
   let mockWindow;
+  let clock;
 
   beforeEach(function () {
     mockWindow = {
@@ -14,6 +15,10 @@ describe('GemiusId module', function () {
 
   afterEach(function () {
     getWindowTopStub.restore();
+    if (clock) {
+      clock.restore();
+      clock = undefined;
+    }
   });
 
   describe('gemiusIdSubmodule', function () {
@@ -35,16 +40,34 @@ describe('GemiusId module', function () {
 
   describe('getId', function () {
     it('should return undefined if gemius_cmd is not available', function (done) {
-      const clock = sinon.useFakeTimers();
+      clock = sinon.useFakeTimers();
       getWindowTopStub.returns({});
 
       gemiusIdSubmodule.getId().callback((resultId) => {
         expect(resultId).to.be.undefined;
-        clock.restore();
         done();
       });
 
-      clock.tick(3100);
+      clock.tick(6400);
+    });
+
+    it('should return null id if no consent', function () {
+      const result = gemiusIdSubmodule.getId({}, {
+        gdpr: {
+          gdprApplies: true,
+          apiVersion: 2,
+          vendorData: {
+            purpose: {
+              consents: {
+                1: true,
+                2: false,
+                3: true, 4: true, 5: true, 6: true, 7: true, 8: true, 9: true, 10: true, 11: true
+              }
+            }
+          }
+        }
+      });
+      expect(result).to.deep.equal({id: {id: null}});
     });
 
     it('should return callback when gemius_cmd is available', function () {

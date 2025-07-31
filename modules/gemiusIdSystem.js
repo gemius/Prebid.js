@@ -3,10 +3,11 @@ import { submodule } from '../src/hook.js';
 
 const MODULE_NAME = 'gemiusId';
 const GVLID = 328;
+const REQUIRED_PURPOSES = [1, 2, 3, 4, 7, 8, 9, 10];
 const LOG_PREFIX = 'Gemius User ID: ';
 
-const WAIT_FOR_PRIMARY_SCRIPT_MAX_TRIES = 7;
-const WAIT_FOR_PRIMARY_SCRIPT_INITIAL_WAIT_MS = 150;
+const WAIT_FOR_PRIMARY_SCRIPT_MAX_TRIES = 8;
+const WAIT_FOR_PRIMARY_SCRIPT_INITIAL_WAIT_MS = 50;
 const GEMIUS_CMD_TIMEOUT = 8000;
 
 function getPrimaryScriptWindow() {
@@ -66,7 +67,14 @@ export const gemiusIdSubmodule = {
     }
     return undefined;
   },
-  getId() {
+  getId(_, {gdpr: consentData} = {}) {
+    if (consentData && typeof consentData.gdprApplies === 'boolean' && consentData.gdprApplies) {
+      if (REQUIRED_PURPOSES.some(purposeId => !consentData.vendorData?.purpose?.consents?.[purposeId])) {
+        logInfo(LOG_PREFIX + 'getId, no consent');
+        return {id: {id: null}};
+      }
+    }
+
     logInfo(LOG_PREFIX + 'getId');
     return {
       callback: function (callback) {
